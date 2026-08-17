@@ -9,17 +9,11 @@ import traceback
 from google import genai
 from google.genai import types
 
-# ==========================================
-# 1. CONFIGURAÇÃO DA CHAVE DO GEMINI
-# ==========================================
+
 API_KEY = "SUA_CHAVE_API"
 
-# Inicializa o cliente oficial da API
 client = genai.Client(api_key=API_KEY)
 
-# ==========================================
-# 2. FUNÇÃO PARA GRAVAR O MICROFONE (INTERATIVA)
-# ==========================================
 def gravar_audio(arquivo="gravacao.wav", samplerate=44100):
     print("\n[🎙️] LIGANDO MICROFONE...")
     
@@ -39,24 +33,20 @@ def gravar_audio(arquivo="gravacao.wav", samplerate=44100):
         )
         gravando = False
 
-    # Concatena os fragmentos de áudio e salva no arquivo .wav
     audio_completo = np.concatenate(dados_audio, axis=0)
     sf.write(arquivo, audio_completo, samplerate)
     
     print("[✅] Gravação concluída com sucesso!")
     return arquivo
 
-# ==========================================
-# 3. FUNÇÃO PARA PREENCHER O EXCEL
-# ==========================================
 def preencher_excel(dados):
     print("\n--- INICIANDO PREENCHIMENTO NO EXCEL ---")
     
-    # 1. Desproteger planilha (Alt + R + P)
+   
     pyautogui.hotkey('alt', 'r', 'p')
     time.sleep(0.5)
 
-    # 2. Preencher Topo (Data -> Modelo -> Medida -> Camada)
+    
     pyautogui.write(str(dados.get("data", "")), interval=0.03)
     pyautogui.press("tab")
 
@@ -69,7 +59,7 @@ def preencher_excel(dados):
     pyautogui.write(str(dados.get("camada", "")), interval=0.03)
     pyautogui.press("tab")
 
-    # 3. Preencher Grade de Tamanhos
+   
     tamanhos = ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G", "Unico"]
 
     for tamanho in tamanhos:
@@ -80,24 +70,22 @@ def preencher_excel(dados):
 
     time.sleep(0.5)
 
-    # 4. Salvar Lançamento no formulário (Enter)
+    
     pyautogui.press("enter")
     time.sleep(1)
 
-    # 5. Reproteger planilha (Alt + R + P)
+    
     pyautogui.hotkey('alt', 'r', 'p')
     print("--- CONCLUÍDO COM SUCESSO! ---")
 
-# ==========================================
-# 4. EXECUÇÃO PRINCIPAL
-# ==========================================
+
 if __name__ == "__main__":
     try:
         arquivo_audio = gravar_audio()
         
         print("Enviando áudio para o Gemini processar via SDK oficial...")
         
-        # Carrega os bytes do arquivo de áudio gravado
+        
         with open(arquivo_audio, "rb") as f:
             audio_bytes = f.read()
 
@@ -124,7 +112,7 @@ if __name__ == "__main__":
         4. SE O USUÁRIO NÃO MENCIONAR NENHUMA DATA: Insira a data atual completa ({data_hoje_str}).
         """
 
-        # Mude de "gemini-2.5-flash" para "gemini-3.6-flash":
+        
         response = client.models.generate_content(
         model="gemini-3.6-flash",
         contents=[
@@ -153,8 +141,8 @@ if __name__ == "__main__":
 
     except Exception as e:
         erro_detalhado = traceback.format_exc()
-        print("\n❌ ERRO DETECTADO:\n", erro_detalhado)
+        print("\n ERRO DETECTADO:\n", erro_detalhado)
         pyautogui.alert(
             text=f"Ocorreu um erro ao executar a automação:\n\n{e}\n\nDetalhes:\n{erro_detalhado[:300]}...",
-            title="❌ Erro na Execução"
+            title=" Erro na Execução"
         )
