@@ -1,4 +1,4 @@
-# Automação de PCP Têxtil com Inteligência Artificial Multimodal e Python
+# Automação de PCP com Inteligência Artificial Multimodal e Python
 
 Solução de automação desenvolvida para o setor de Planejamento e Controle de Produção (PCP), permitindo transformar relatórios falados em dados estruturados e inseri-los automaticamente em planilhas do Excel em tempo real.
 
