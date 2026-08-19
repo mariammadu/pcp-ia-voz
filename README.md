@@ -4,22 +4,28 @@ Solução de automação desenvolvida para o setor de Planejamento e Controle de
 
 ## Arquitetura da Solução
 
-* **Captura de Áudio:** Gravação dinâmica via microfone através das bibliotecas `sounddevice` e `soundfile`, exportando o sinal para formato wave.
-* **Processamento LLM:** Envio do áudio diretamente para a API Multimodal do Gemini. Utilizando engenharia de prompt, o modelo extrai os dados brutos da fala e os sanitiza em um JSON padronizado com campos de data, modelo, medidas e grade de tamanhos.
+* **Captura de Áudio:** Gravação dinâmica via microfone através das bibliotecas `sounddevice` e `soundfile`, exportando o sinal para formato WAVE e processando matrizes de som em memória com `numpy`.
+* **Processamento LLM:** Envio dos bytes de áudio diretamente para a API Multimodal do Gemini utilizando o SDK oficial `google-genai`. O modelo extrai os dados brutos da fala e os sanitiza em um JSON padronizado com campos de data, modelo, medidas e grade de tamanhos.
 * **Automação de Formulário:** Uso da biblioteca `PyAutoGUI` para realizar a navegação e a digitação automática na interface do Excel, preenchendo cada célula e confirmando a entrada de dados.
-* **Deploy:** Empacotamento de toda a aplicação usando `PyInstaller` para gerar um executável independente.
+* **Deploy:** Empacotamento de toda a aplicação usando `PyInstaller` para gerar um executável independente (`.exe`).
 
 ---
 
-## Desafio Técnico: Resolução do Endpoint da API
+## Desafios Técnicos e Resiliência
 
-Durante a integração, surgiram erros de resposta da API (códigos 404 Not Found e API Key Invalid) ao tentar realizar chamadas usando a SDK padrão.
+Durante o desenvolvimento e homologação da ferramenta, surgiram desafios de infraestrutura e rotas de API que foram solucionados com as seguintes arquiteturas:
 
-**Resolução e Diagnóstico:**
-1. **Incompatibilidade da SDK:** Identificação de que as chaves mais recentes exigiam uma estrutura de rota diferente da tratada pelas chamadas legadas da biblioteca.
-2. **Análise por cURL:** Extração da requisição nativa no formato cURL a partir do console. Identificou-se que o cabeçalho de autenticação exigia a chave enviada especificamente via `X-goog-api-key`, e o modelo ativo era o `gemini-flash-latest`.
-3. **Validação Direta:** Construção de um script leve utilizando a biblioteca `urllib` do Python para disparar requisições POST diretamente para a URL do endpoint, isolando a camada de biblioteca de terceiros.
-4. **Refatoração:** Conversão do áudio gravado para representação em Base64 e reestruturação da aplicação principal para consumir a API via HTTP direto.
+### 1. Migração para a SDK Oficial (`google-genai`)
+* **Problema:** Chamadas REST manuais via HTTP (`urllib`) sofriam com alterações frequentes de endpoints e descontinuação de aliases legados (erros 404 e 500).
+* **Solução:** Adopção da biblioteca oficial do Google (`google-genai`), garantindo o gerenciamento automático dos cabeçalhos de requisição, suporte nativo ao formato de áudio e roteamento dinâmico para os modelos vigentes em produção (como o `gemini-3.6-flash`).
+
+### 2. Tratamento de Picos de Demanda na Nuvem (Failover e Retry)
+* **Problema:** Erros temporários de alta demanda no servidor do Google (código `503 UNAVAILABLE`) interrompiam o fluxo de trabalho do usuário.
+* **Solução:** Implementação de uma lógica de resiliência com até 3 tentativas automáticas de reenvio (`time.sleep`) e *fallback* automático para modelos de backup (`gemini-1.5-flash`), evitando que a automação falhe por instabilidades momentâneas da nuvem.
+
+### 3. Tratamento Global de Exceções em Modo `noconsole`
+* **Problema:** Ao compilar com PyInstaller ocultando a janela do prompt (`--noconsole`), exceções de tempo de execução fechavam a aplicação sem feedback ao operador.
+* **Solução:** Implementação de um bloco estruturado de captura geral (`try...except`) que utiliza o `traceback` para exibir pop-ups visuais interativos (`pyautogui.alert`) informando o status preciso de qualquer falha de rede ou execução.
 
 ---
 
