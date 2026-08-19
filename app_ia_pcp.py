@@ -9,10 +9,14 @@ import traceback
 from google import genai
 from google.genai import types
 
-
+# ==========================================
+# CHAVE DO GEMINI
 API_KEY = "SUA_CHAVE_API"
 
 client = genai.Client(api_key=API_KEY)
+
+# ==========================================
+# GRAVAR O MICROFONE (INTERATIVA)
 
 def gravar_audio(arquivo="gravacao.wav", samplerate=44100):
     print("\n[🎙️] LIGANDO MICROFONE...")
@@ -24,7 +28,6 @@ def gravar_audio(arquivo="gravacao.wav", samplerate=44100):
         if gravando:
             dados_audio.append(indata.copy())
 
-    # Inicia a captura de áudio em segundo plano
     stream = sd.InputStream(samplerate=samplerate, channels=1, dtype='int16', callback=callback)
     with stream:
         pyautogui.alert(
@@ -39,14 +42,15 @@ def gravar_audio(arquivo="gravacao.wav", samplerate=44100):
     print("[✅] Gravação concluída com sucesso!")
     return arquivo
 
+# ==========================================
+# PREENCHER O EXCEL
+
 def preencher_excel(dados):
     print("\n--- INICIANDO PREENCHIMENTO NO EXCEL ---")
     
-   
     pyautogui.hotkey('alt', 'r', 'p')
     time.sleep(0.5)
 
-    
     pyautogui.write(str(dados.get("data", "")), interval=0.03)
     pyautogui.press("tab")
 
@@ -59,7 +63,6 @@ def preencher_excel(dados):
     pyautogui.write(str(dados.get("camada", "")), interval=0.03)
     pyautogui.press("tab")
 
-   
     tamanhos = ["PP", "P", "M", "G", "GG", "EX", "EXG", "2G", "3G", "4G", "5G", "Unico"]
 
     for tamanho in tamanhos:
@@ -70,21 +73,20 @@ def preencher_excel(dados):
 
     time.sleep(0.5)
 
-    
     pyautogui.press("enter")
     time.sleep(1)
 
-    
     pyautogui.hotkey('alt', 'r', 'p')
     print("--- CONCLUÍDO COM SUCESSO! ---")
 
+# ==========================================
+# EXECUÇÃO PRINCIPAL
 
 if __name__ == "__main__":
     try:
         arquivo_audio = gravar_audio()
         
         print("Enviando áudio para o Gemini processar via SDK oficial...")
-        
         
         with open(arquivo_audio, "rb") as f:
             audio_bytes = f.read()
@@ -113,16 +115,30 @@ if __name__ == "__main__":
         """
 
         
-        response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=[
-        types.Part.from_bytes(
-            data=audio_bytes,
-            mime_type="audio/wav"
-        ),
-        prompt
-    ]
-)
+        modelos = ["gemini-3.6-flash", "gemini-1.5-flash"]
+        response = None
+
+        for tentativa in range(3):
+            try:
+                modelo_usado = modelos[0] if tentativa < 2 else modelos[1]
+                
+                response = client.models.generate_content(
+                    model=modelo_usado,
+                    contents=[
+                        types.Part.from_bytes(
+                            data=audio_bytes,
+                            mime_type="audio/wav"
+                        ),
+                        prompt
+                    ]
+                )
+                break
+            except Exception as e_api:
+                if "503" in str(e_api) and tentativa < 2:
+                    print(f" Servidor ocupado. Reenviando em 2 segundos... (Tentativa {tentativa + 1}/3)")
+                    time.sleep(2)
+                else:
+                    raise e_api
 
         texto_resposta = response.text
         texto_limpo = texto_resposta.replace("```json", "").replace("```", "").strip()
@@ -141,8 +157,8 @@ if __name__ == "__main__":
 
     except Exception as e:
         erro_detalhado = traceback.format_exc()
-        print("\n ERRO DETECTADO:\n", erro_detalhado)
+        print("\n❌ ERRO DETECTADO:\n", erro_detalhado)
         pyautogui.alert(
             text=f"Ocorreu um erro ao executar a automação:\n\n{e}\n\nDetalhes:\n{erro_detalhado[:300]}...",
-            title=" Erro na Execução"
+            title="❌ Erro na Execução"
         )
