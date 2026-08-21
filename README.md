@@ -8,17 +8,17 @@ Solução end-to-end desenvolvida para o setor de Planejamento e Controle de Pro
 
 O projeto é dividido em 3 pilares principais interligados à planilha mestra do Excel (`Controle Consumo de Tecidos Duda.xlsm`):
 
-### 1. Lançamento de Formuário por Voz (`app_ia_pcp.py`)
+### 1. Lançamento de Formuário por Voz (`lancamento-ia.py`)
 * **Captura de Áudio:** Gravação dinâmica via microfone através das bibliotecas `sounddevice` e `soundfile`, exportando o sinal para formato WAVE e processando matrizes de som em memória com `numpy`.
 * **Processamento LLM:** Envio dos bytes de áudio para a API Multimodal do Gemini via SDK oficial `google-genai`. O modelo extrai os dados brutos da fala e os sanitiza em um JSON padronizado com campos de data, modelo, medidas e grade de tamanhos (PP ao 5G e Único).
 * **Automação de Interface:** Uso da biblioteca `PyAutoGUI` para navegação e digitação automática nos campos do formulário no Excel.
 
-### 2. Leitor e Auditoria de Rolos (`gravar_excel_direto.py`)
+### 2. Leitor e Auditoria de Rolos (`leitor-rolos.py`)
 * **Interface Gráfica Desktop:** Desenvolvida em `Tkinter`, permitindo operação ágil pelo cortador.
 * **Regex Especializada para DataMatrix/GS1:** Extração e sanitização dos campos de Metragem, Peso Líquido e Número do Rolo (14 dígitos), tratando caracteres invisíveis de controle ASCII (`Group Separator ^] / GS`).
 * **Automação Nativa COM (`win32com.client`):** Inserção de dados via motor nativo do Excel no Windows, preservando intactos todos os formulários, botões de ação e macros VBA (`.xlsm`) da planilha sem corromper a estrutura de arquivos.
 
-### 3. Assistente Virtual de Consulta IA (`consulta_ia_pcp.py`)
+### 3. Assistente Virtual de Consulta IA (`assistente-ia.py`)
 * **Processamento de Dados com Pandas:** Leitura em tempo real das abas de auditoria e lançamentos da planilha em rede local (`Z:\`).
 * **Consulta em Linguagem Natural:** Integração com LLM para responder dúvidas operacionais da gestão (ex: *"Quantos metros do modelo 2904 foram cortados hoje?"* ou *"Qual o peso total dos rolos bipados?"*).
 
