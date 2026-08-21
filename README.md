@@ -1,4 +1,4 @@
-# Sistema Integrado de PCP com IA Multimodal e Automação Python
+# Sistema Integrado de PCP com IA e Automação Python
 
 Solução end-to-end desenvolvida para o setor de Planejamento e Controle de Produção (PCP) têxtil. O ecossistema transforma relatórios falados em dados estruturados, automatiza a leitura e validação de etiquetas de rolos de tecido via DataMatrix/QR Code e disponibiliza um assistente virtual para consultas estratégicas aos dados em tempo real.
 
